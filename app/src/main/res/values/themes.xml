@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.Netra" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/netra_night</item>
+        <item name="android:statusBarColor">@color/netra_night</item>
+        <item name="android:navigationBarColor">@color/netra_night</item>
+    </style>
+</resources>

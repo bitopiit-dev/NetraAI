@@ -1,0 +1,1 @@
+efficientdet_lite0.tflite is downloaded here automatically on first build.
