@@ -26,7 +26,7 @@ sealed interface ScanEvent {
 /** TCP port sweep of a /24 subnet looking for Dahua NVRs and cameras. */
 class NetworkScanner {
     fun scan(prefix: String, from: Int = 1, to: Int = 254): Flow<ScanEvent> = channelFlow {
-        val total = (to - from) + 1
+        val total = to - from + 1
         val done = AtomicInteger(0)
         val gate = Semaphore(48)
         for (i in from..to) {
@@ -45,7 +45,7 @@ class NetworkScanner {
 
     private fun open(ip: String, port: Int, timeoutMs: Int = 400): Boolean = try {
         Socket().use { it.connect(InetSocketAddress(ip, port), timeoutMs); true }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         false
     }
 }

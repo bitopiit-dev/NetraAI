@@ -39,7 +39,7 @@ class AlertRepository(context: Context, private val dao: AlertDao) {
             val file = File(dir, "${now}_${cameraId ?: 0}_${type.name.lowercase()}.jpg")
             when {
                 frame != null -> file.outputStream().use { frame.compress(Bitmap.CompressFormat.JPEG, 82, it) }
-                (jpeg != null) && (BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size) != null) -> file.writeBytes(jpeg)
+                jpeg != null && BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size) != null -> file.writeBytes(jpeg)
                 else -> return@runCatching null
             }
             file.absolutePath
@@ -55,7 +55,7 @@ class AlertRepository(context: Context, private val dao: AlertDao) {
     /** Deletes alerts (and their snapshot files) older than [days]; runs at most hourly. */
     suspend fun pruneIfDue(days: Int, force: Boolean = false): Int = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
-        if (!force && ((now - lastPrune) < TimeUnit.HOURS.toMillis(1))) return@withContext 0
+        if (!force && now - lastPrune < TimeUnit.HOURS.toMillis(1)) return@withContext 0
         lastPrune = now
         val before = now - TimeUnit.DAYS.toMillis(days.toLong())
         dao.snapshotsBefore(before).forEach { runCatching { File(it).delete() } }

@@ -1,7 +1,6 @@
 package com.factory.netra.data.prefs
 
 import android.content.Context
-import androidx.core.content.edit
 import java.util.Calendar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,7 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 /** Which video player library draws the live streams. */
 object VideoEngine {
     const val AUTO = 0     // Android player, falls back to VLC per camera on failure
-    @Suppress("unused")
     const val ANDROID = 1  // Media3 / ExoPlayer only
     const val VLC = 2      // libVLC for every camera
     val labels = listOf("Auto", "Android player", "VLC")
@@ -73,32 +71,32 @@ class SettingsStore(context: Context) {
     }
 
     private fun write(s: AppSettings) {
-        prefs.edit {
-            putString("factoryName", s.factoryName)
-            putBoolean("aiEnabled", s.aiEnabled)
-            putBoolean("recorderEvents", s.recorderEvents)
-            putInt("workStartHour", s.workStartHour)
-            putInt("workEndHour", s.workEndHour)
-            putInt("weeklyOffDay", s.weeklyOffDay)
-            putInt("crowdThreshold", s.crowdThreshold)
-            putFloat("confidence", s.confidence)
-            putInt("idleMinutes", s.idleMinutes)
-            putInt("workers", s.workers)
-            putInt("cycleDelaySec", s.cycleDelaySec)
-            putInt("cooldownMin", s.cooldownMin)
-            putBoolean("hdFullscreen", s.hdFullscreen)
-            putInt("defaultGrid", s.defaultGrid)
-            putBoolean("startOnBoot", s.startOnBoot)
-            putInt("retentionDays", s.retentionDays)
-            putInt("videoEngine", s.videoEngine)
-        }
+        prefs.edit()
+            .putString("factoryName", s.factoryName)
+            .putBoolean("aiEnabled", s.aiEnabled)
+            .putBoolean("recorderEvents", s.recorderEvents)
+            .putInt("workStartHour", s.workStartHour)
+            .putInt("workEndHour", s.workEndHour)
+            .putInt("weeklyOffDay", s.weeklyOffDay)
+            .putInt("crowdThreshold", s.crowdThreshold)
+            .putFloat("confidence", s.confidence)
+            .putInt("idleMinutes", s.idleMinutes)
+            .putInt("workers", s.workers)
+            .putInt("cycleDelaySec", s.cycleDelaySec)
+            .putInt("cooldownMin", s.cooldownMin)
+            .putBoolean("hdFullscreen", s.hdFullscreen)
+            .putInt("defaultGrid", s.defaultGrid)
+            .putBoolean("startOnBoot", s.startOnBoot)
+            .putInt("retentionDays", s.retentionDays)
+            .putInt("videoEngine", s.videoEngine)
+            .apply()
     }
 }
 
 /** True during the shift (handles night shifts that cross midnight). */
 fun AppSettings.isWorkingTime(now: Calendar = Calendar.getInstance()): Boolean {
-    if (now[Calendar.DAY_OF_WEEK] == weeklyOffDay) return false
-    val h = now[Calendar.HOUR_OF_DAY]
-    return if (workStartHour <= workEndHour) (h in (workStartHour until workEndHour))
-    else ((h >= workStartHour) || (h < workEndHour))
+    if (now.get(Calendar.DAY_OF_WEEK) == weeklyOffDay) return false
+    val h = now.get(Calendar.HOUR_OF_DAY)
+    return if (workStartHour <= workEndHour) h in workStartHour until workEndHour
+    else h >= workStartHour || h < workEndHour
 }

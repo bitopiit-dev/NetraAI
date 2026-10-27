@@ -59,13 +59,13 @@ class AiScheduler(private val c: AppContainer) {
             val ready = c.detector.available
             if (!s.aiEnabled || !ready) {
                 _status.value = _status.value.copy(running = false, modelReady = ready)
-                delay(5_000L)
+                delay(5_000)
                 continue
             }
             val targets = c.db.cameraDao().aiTargets()
             if (targets.isEmpty()) {
                 _status.value = AiStatus(running = true, modelReady = true)
-                delay(5_000L)
+                delay(5_000)
                 continue
             }
             val started = System.currentTimeMillis()
@@ -93,7 +93,7 @@ class AiScheduler(private val c: AppContainer) {
     private suspend fun analyze(cam: CameraWithDevice, confidence: Float): Int? {
         val jpeg = c.dahua.snapshot(c.devices.endpoint(cam.device), cam.camera.channel)
         if (jpeg == null) {
-            c.db.cameraDao().setOnline(cam.camera.id, online = false)
+            c.db.cameraDao().setOnline(cam.camera.id, false)
             return null
         }
         val bitmap = decodeScaled(jpeg, 640) ?: return null
@@ -113,7 +113,7 @@ class AiScheduler(private val c: AppContainer) {
         BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, bounds)
         if (bounds.outWidth <= 0) return null
         var sample = 1
-        while ((bounds.outWidth / (sample * 2)) >= targetWidth) sample *= 2
+        while (bounds.outWidth / (sample * 2) >= targetWidth) sample *= 2
         val opts = BitmapFactory.Options().apply {
             inSampleSize = sample
             inPreferredConfig = Bitmap.Config.ARGB_8888

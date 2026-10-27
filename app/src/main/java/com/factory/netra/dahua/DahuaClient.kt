@@ -81,7 +81,7 @@ class DahuaClient(private val base: OkHttpClient) {
         val titles = runCatching {
             val text = get(ep, "/cgi-bin/configManager.cgi?action=getConfig&name=ChannelTitle")
             Regex("""table\.ChannelTitle\[(\d+)]\.Name=(.*)""").findAll(text)
-                .associateBy({ it.groupValues[1].toInt() }) { it.groupValues[2].trim() }
+                .associate { it.groupValues[1].toInt() to it.groupValues[2].trim() }
         }.getOrDefault(emptyMap())
 
         val upper = type.uppercase()
@@ -103,7 +103,7 @@ class DahuaClient(private val base: OkHttpClient) {
                 if (it.groupValues[2] == "channel") ch[i] = it.groupValues[3].trim().toInt()
                 else st[i] = it.groupValues[3].trim()
             }
-            ch.entries.associateBy({ (_, c) -> c }) { (i, _) -> st[i]?.equals("Connected", ignoreCase = true) ?: true }
+            ch.entries.associate { (i, c) -> c to (st[i]?.equals("Connected", true) ?: true) }
         }.getOrDefault(emptyMap())
 
         val count = if (!isRecorder) 1 else titles.keys.maxOrNull()?.plus(1) ?: 1

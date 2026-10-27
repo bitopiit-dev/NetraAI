@@ -51,14 +51,12 @@ data class DeviceEntity(
 
 @Entity(
     tableName = "cameras",
-    foreignKeys = [
-        ForeignKey(
-            entity = DeviceEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["deviceId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-    ],
+    foreignKeys = [ForeignKey(
+        entity = DeviceEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["deviceId"],
+        onDelete = ForeignKey.CASCADE,
+    )],
     indices = [Index("deviceId"), Index(value = ["deviceId", "channel"], unique = true)],
 )
 data class CameraEntity(

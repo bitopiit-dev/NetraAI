@@ -46,6 +46,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -87,13 +88,13 @@ fun NetraShell(openRequest: Dest?, onOpenHandled: () -> Unit) {
             onOpenHandled()
         }
     }
-    BackHandler(enabled = (fullscreen != null) || (dest != Dest.Overview)) {
+    BackHandler(enabled = fullscreen != null || dest != Dest.Overview) {
         if (fullscreen != null) fullscreen = null else dest = Dest.Overview
     }
 
     val open = fullscreen
     if (open != null) {
-        FullscreenCamera(cameraId = open, onClose = { fullscreen = null }) { fullscreen = it }
+        FullscreenCamera(cameraId = open, onClose = { fullscreen = null }, onSwitch = { fullscreen = it })
         return
     }
 
@@ -151,15 +152,11 @@ fun NetraShell(openRequest: Dest?, onOpenHandled: () -> Unit) {
 
 @Composable
 private fun NavIcon(d: Dest, unack: Int, tint: Color = Color.Unspecified) {
-    BadgedBox(
-        badge = {
-            if ((d == Dest.Alerts) && (unack > 0)) {
-                Badge(containerColor = NetraColors.Alarm) {
-                    Text(if (unack > 99) "99+" else unack.toString())
-                }
-            }
-        },
-    ) {
+    BadgedBox(badge = {
+        if (d == Dest.Alerts && unack > 0) Badge(containerColor = NetraColors.Alarm) {
+            Text(if (unack > 99) "99+" else unack.toString())
+        }
+    }) {
         if (tint == Color.Unspecified) Icon(d.icon, d.label) else Icon(d.icon, d.label, tint = tint)
     }
 }
@@ -215,7 +212,7 @@ private fun Clock() {
     val now by produceState(System.currentTimeMillis()) {
         while (true) {
             value = System.currentTimeMillis()
-            delay(15_000L)
+            delay(15_000)
         }
     }
     val time = remember(now) { SimpleDateFormat("h:mm", Locale.getDefault()).format(Date(now)) }

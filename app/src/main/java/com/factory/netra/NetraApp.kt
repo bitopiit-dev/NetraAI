@@ -9,6 +9,7 @@ class NetraApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        CrashLog.install(this)
         container = AppContainer(this)
     }
 }

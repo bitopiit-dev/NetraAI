@@ -50,7 +50,7 @@ class ObjectDetectorEngine(private val context: Context) {
             .takeIf { runCatching { context.assets.open(MODEL).close() }.isSuccess }?.getOrNull()
         val base = fromAsset ?: runCatching {
             val f = downloadedModel
-            if ((!f.exists()) || (f.length() < 100_000)) return null
+            if (!f.exists() || f.length() < 100_000) return null
             val bytes = f.readBytes()
             val buffer = ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder())
             buffer.put(bytes).rewind()

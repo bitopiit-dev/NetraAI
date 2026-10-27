@@ -36,9 +36,9 @@ class RuleEngine(private val c: AppContainer) {
 
         if (people > 0) lastPersonSeen[id] = now
 
-        if ((cam.camera.restricted) && (people > 0)) {
+        if (cam.camera.restricted && people > 0) {
             findings += Finding(AlertType.RESTRICTED_AREA, Severity.HIGH, "$people person(s) inside a restricted area")
-        } else if ((!working) && (people > 0)) {
+        } else if (!working && people > 0) {
             findings += Finding(AlertType.AFTER_HOURS, Severity.HIGH, "$people person(s) on site outside working hours")
         }
         if (people >= s.crowdThreshold) {
@@ -47,7 +47,7 @@ class RuleEngine(private val c: AppContainer) {
         if (cam.camera.monitorIdle && working) {
             val last = lastPersonSeen.getOrPut(id) { now }
             val idleMin = (now - last) / 60_000
-            if ((people == 0) && (idleMin >= s.idleMinutes)) {
+            if (people == 0 && idleMin >= s.idleMinutes) {
                 findings += Finding(AlertType.LINE_IDLE, Severity.LOW, "No operator seen for $idleMin min")
             }
         }
@@ -89,7 +89,7 @@ class RuleEngine(private val c: AppContainer) {
     private fun cooldownPassed(key: String, minutes: Int): Boolean {
         val now = System.currentTimeMillis()
         val last = lastAlert[key] ?: 0L
-        if ((now - last) < (minutes * 60_000L)) return false
+        if (now - last < minutes * 60_000L) return false
         lastAlert[key] = now
         return true
     }
@@ -107,7 +107,7 @@ class RuleEngine(private val c: AppContainer) {
             tag.color = color
             canvas.drawRect(d.box, box)
             val label = "${d.label} ${(d.score * 100).toInt()}%"
-            val w = text.measureText(label) + (stroke * 2)
+            val w = text.measureText(label) + stroke * 2
             canvas.drawRect(d.box.left, d.box.top - text.textSize - stroke, d.box.left + w, d.box.top, tag)
             canvas.drawText(label, d.box.left + stroke, d.box.top - stroke, text)
         }

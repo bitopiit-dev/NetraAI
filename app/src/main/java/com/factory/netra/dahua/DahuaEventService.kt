@@ -27,7 +27,7 @@ data class RecorderEvent(val code: String, val action: String, val index: Int)
 
 /**
  * Subscribes to each NVR/camera's event stream
- * (/cgi-bin/eventManager.cgi?action=attach&codes=\[All\]) so the smart rules
+ * (/cgi-bin/eventManager.cgi?action=attach&codes=[All]) so the smart rules
  * already configured on the Dahua devices (tripwire, intrusion, tamper,
  * SMD human/vehicle, video loss, HDD errors) become Netra alerts instantly.
  * 7 NVRs = 7 long-lived HTTP connections, regardless of camera count.
@@ -73,7 +73,7 @@ class DahuaEventService(private val c: AppContainer) {
                         call.execute().use { resp ->
                             if (resp.code == 401) throw AuthException("Event stream: wrong credentials")
                             if (!resp.isSuccessful) throw IOException("Event stream HTTP ${resp.code}")
-                            c.devices.setDeviceOnline(device.id, online = true)
+                            c.devices.setDeviceOnline(device.id, true)
                             backoff = 5_000L
                             val source = resp.body?.source() ?: throw IOException("empty body")
                             while (true) {
@@ -89,11 +89,11 @@ class DahuaEventService(private val c: AppContainer) {
                 throw e
             } catch (e: AuthException) {
                 Log.w(TAG, "${device.host}: ${e.message}")
-                c.devices.setDeviceOnline(device.id, online = false)
+                c.devices.setDeviceOnline(device.id, false)
                 backoff = 10 * 60_000L // do not hammer the device and lock the account
             } catch (e: Exception) {
                 Log.d(TAG, "${device.host}: ${e.message}")
-                c.devices.setDeviceOnline(device.id, online = false)
+                c.devices.setDeviceOnline(device.id, false)
             }
             delay(backoff)
             backoff = (backoff * 2).coerceAtMost(10 * 60_000L)
@@ -111,7 +111,7 @@ class DahuaEventService(private val c: AppContainer) {
         when (e.code) {
             "VideoLoss" -> cam?.let { c.db.cameraDao().setOnline(it.camera.id, e.action != "Start") }
         }
-        if ((e.action != "Start") && (e.action != "Pulse")) return
+        if (e.action != "Start" && e.action != "Pulse") return
 
         val working = c.settings.current.isWorkingTime()
         val (type, severity) = when (e.code) {

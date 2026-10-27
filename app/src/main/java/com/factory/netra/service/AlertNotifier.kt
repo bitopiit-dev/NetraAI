@@ -20,17 +20,19 @@ import com.factory.netra.data.db.Severity
 
 class AlertNotifier(private val context: Context) {
     init {
-        val nm = context.getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(
-            NotificationChannel(CH_CRITICAL, "Critical security alerts", NotificationManager.IMPORTANCE_HIGH)
-                .apply { description = "Restricted area, after-hours movement, tampering, tripwire" },
-        )
-        nm.createNotificationChannel(
-            NotificationChannel(CH_ALERTS, "Other alerts", NotificationManager.IMPORTANCE_DEFAULT),
-        )
-        nm.createNotificationChannel(
-            NotificationChannel(CH_SERVICE, "Monitoring service", NotificationManager.IMPORTANCE_MIN),
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nm = context.getSystemService(NotificationManager::class.java)
+            nm.createNotificationChannel(
+                NotificationChannel(CH_CRITICAL, "Critical security alerts", NotificationManager.IMPORTANCE_HIGH)
+                    .apply { description = "Restricted area, after-hours movement, tampering, tripwire" }
+            )
+            nm.createNotificationChannel(
+                NotificationChannel(CH_ALERTS, "Other alerts", NotificationManager.IMPORTANCE_DEFAULT)
+            )
+            nm.createNotificationChannel(
+                NotificationChannel(CH_SERVICE, "Monitoring service", NotificationManager.IMPORTANCE_MIN)
+            )
+        }
     }
 
     private fun openApp(requestCode: Int, openAlerts: Boolean): PendingIntent {
@@ -40,7 +42,7 @@ class AlertNotifier(private val context: Context) {
         }
         return PendingIntent.getActivity(
             context, requestCode, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
 
@@ -50,13 +52,13 @@ class AlertNotifier(private val context: Context) {
             .setContentTitle("Netra AI is watching")
             .setContentText("AI patrol and recorder events are active")
             .setOngoing(true)
-            .setContentIntent(openApp(0, openAlerts = false))
+            .setContentIntent(openApp(0, false))
             .build()
 
     fun notify(alert: AlertEntity) {
-        if ((Build.VERSION.SDK_INT >= 33) &&
-            (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED)
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
         ) return
 
         val critical = alert.severity == Severity.HIGH
@@ -67,7 +69,7 @@ class AlertNotifier(private val context: Context) {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(if (critical) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
-            .setContentIntent(openApp(alert.id.toInt(), openAlerts = true))
+            .setContentIntent(openApp(alert.id.toInt(), true))
 
         alert.snapshotPath?.let { path ->
             val opts = BitmapFactory.Options().apply { inSampleSize = 2 }

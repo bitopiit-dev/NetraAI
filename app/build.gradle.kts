@@ -24,10 +24,9 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
-            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
+                "proguard-rules.pro"
             )
             // Replace with your own release keystore before distributing.
             signingConfig = signingConfigs.getByName("debug")
@@ -69,7 +68,6 @@ val modelUrl =
 val modelFile = file("src/main/assets/efficientdet_lite0.tflite")
 
 val downloadAiModel by tasks.registering {
-    description = "Downloads the EfficientDet-Lite0 AI model if missing"
     outputs.file(modelFile)
     onlyIf { !modelFile.exists() }
     doLast {
@@ -81,10 +79,8 @@ val downloadAiModel by tasks.registering {
             println("Netra: AI model downloaded -> ${modelFile.path}")
         } catch (e: Exception) {
             modelFile.delete()
-            println(
-                "Netra WARNING: could not download AI model (${e.message}). " +
-                    "App will build, but AI detection stays off until the model is in assets/."
-            )
+            println("Netra WARNING: could not download AI model (${e.message}). " +
+                "App will build, but AI detection stays off until the model is in assets/.")
         }
     }
 }
@@ -95,7 +91,6 @@ dependencies {
     implementation(composeBom)
 
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.fragment:fragment-ktx:1.8.3")
     implementation("androidx.activity:activity-compose:1.9.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")

@@ -32,7 +32,7 @@ class DigestAuthenticator(private val user: String, private val pass: String) : 
         val nonce = p["nonce"] ?: return null
         val opaque = p["opaque"]
         val algorithm = p["algorithm"]
-        val qop = p["qop"]?.split(',')?.asSequence()?.map { it.trim() }?.firstOrNull { it.equals("auth", ignoreCase = true) }
+        val qop = p["qop"]?.split(',')?.map { it.trim() }?.firstOrNull { it.equals("auth", true) }
 
         val url = response.request.url
         val uri = url.encodedPath + (url.encodedQuery?.let { "?$it" } ?: "")
@@ -49,9 +49,10 @@ class DigestAuthenticator(private val user: String, private val pass: String) : 
             append("Digest username=\"").append(user).append("\", realm=\"").append(realm)
             append("\", nonce=\"").append(nonce).append("\", uri=\"").append(uri)
             append("\", response=\"").append(resp).append('"')
-            algorithm?.let { append(", algorithm=").append(it) }
-            opaque?.let { append(", opaque=\"").append(it).append('"') }
-            qop?.let { append(", qop=").append(it).append(", nc=").append(nc).append(", cnonce=\"").append(cnonce).append('"') }
+            if (algorithm != null) append(", algorithm=").append(algorithm)
+            if (opaque != null) append(", opaque=\"").append(opaque).append('"')
+            if (qop != null) append(", qop=").append(qop).append(", nc=").append(nc)
+                .append(", cnonce=\"").append(cnonce).append('"')
         }
         return response.request.newBuilder().header("Authorization", header).build()
     }

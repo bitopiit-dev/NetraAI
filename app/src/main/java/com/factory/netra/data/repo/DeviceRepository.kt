@@ -11,7 +11,7 @@ import com.factory.netra.data.security.CryptoBox
 import kotlinx.coroutines.flow.Flow
 
 class DeviceRepository(
-    db: NetraDatabase,
+    private val db: NetraDatabase,
     private val crypto: CryptoBox,
     private val dahua: DahuaClient,
 ) {
@@ -64,14 +64,14 @@ class DeviceRepository(
                 channelCount = info.channels.size,
                 online = true,
                 lastSeen = System.currentTimeMillis(),
-            ),
+            )
         )
         val channels = if (type == DeviceType.CAMERA) info.channels.take(1) else info.channels.filter { it.connected }
         val rows = channels.map {
             CameraEntity(
                 deviceId = id,
                 channel = it.channel,
-                name = if ((type == DeviceType.CAMERA) && name.isNotBlank()) name else it.title,
+                name = if (type == DeviceType.CAMERA && name.isNotBlank()) name else it.title,
                 zone = zone.ifBlank { "Unassigned" },
             )
         }
@@ -85,13 +85,11 @@ class DeviceRepository(
         deviceDao.update(
             device.copy(
                 model = info.model, channelCount = info.channels.size,
-                online = true, lastSeen = System.currentTimeMillis(),
-            ),
+                online = true, lastSeen = System.currentTimeMillis()
+            )
         )
-        val fresh = info.channels.asSequence()
-            .filter { it.connected && (it.channel !in existing) }
+        val fresh = info.channels.filter { it.connected && it.channel !in existing }
             .map { CameraEntity(deviceId = device.id, channel = it.channel, name = it.title) }
-            .toList()
         cameraDao.insertAll(fresh).count { it > 0 }
     }
 
